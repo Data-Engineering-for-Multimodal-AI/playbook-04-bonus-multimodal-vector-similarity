@@ -1,0 +1,12 @@
+{
+    "video_id": "download (20)",
+    "timestamp": "2025-04-13T18:46:07.368495",
+    "embedding_file": "data/embeddings_test/download (20)_embedding.npy",
+    "embedding_dimension": 512,
+    "original_file": "data/videos/download (20).mp4",
+    "file_size_mb": 1.45,
+    "num_frames_processed": 24,
+    "processing_time_seconds": 1.062,
+    "embedding_version": "v1",
+    "model_used": "resnet18"
+}

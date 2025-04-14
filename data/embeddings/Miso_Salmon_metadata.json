@@ -1,0 +1,12 @@
+{
+    "media_id": "Miso_Salmon",
+    "media_type": "image",
+    "timestamp": "2025-04-13T19:00:38.019869",
+    "embedding_file": "data/embeddings/Miso_Salmon_embedding.npy",
+    "embedding_dimension": 512,
+    "original_file": "data/images/Miso_Salmon.jpg",
+    "file_size_mb": 0.77,
+    "processing_time_seconds": 0.046,
+    "embedding_version": "v1",
+    "model_used": "resnet18"
+}
