@@ -11,6 +11,7 @@ import time
 import json
 import uvicorn
 import numpy as np
+from contextlib import asynccontextmanager
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,25 +41,6 @@ class SearchResponse(BaseModel):
     query: Dict[str, Any]
     results: List[Dict[str, Any]]
     stats: Dict[str, Any]
-
-# Initialize the API
-app = FastAPI(
-    title="ByteEats Vector Similarity Search API",
-    description="API for searching similar food preparation videos using vector embeddings",
-    version="1.0.0"
-)
-
-# Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include quality check router
-app.include_router(quality_router)
 
 # Global variables
 embedding_dir = os.environ.get("EMBEDDING_DIR", "data/embeddings")
@@ -99,10 +81,31 @@ def initialize_api():
     print(f"API initialized with {num_embeddings} embeddings")
     return num_embeddings
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize the similarity search and quality checker on startup."""
+@asynccontextmanager
+async def lifespan(app):
+    """Initialize on startup, clean up on shutdown."""
     initialize_api()
+    yield
+
+# Initialize the API
+app = FastAPI(
+    title="ByteEats Vector Similarity Search API",
+    description="API for searching similar food preparation videos using vector embeddings",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include quality check router
+app.include_router(quality_router)
 
 @app.get("/")
 async def root():

@@ -10,6 +10,19 @@ An advanced vector embedding and similarity search system for food preparation v
 - **Quality Assessment**: Compares videos against reference images with configurable thresholds
 - **Visualization**: Interactive dashboard to explore embeddings and quality assessment results
 
+## Bonus: Scaling Similarity Search Guide
+
+For a comprehensive, step-by-step walkthrough of this entire system — from embedding generation through quality assessment to production scaling — see the **[Bonus Content Guide](docs/GUIDE.md)**.
+
+The guide includes:
+- Detailed explanations of each pipeline stage with expected outputs
+- Dashboard screenshots showing PCA visualizations and quality assessments
+- Side-by-side comparisons of video frames vs. reference images
+- Practical advice on improving matching quality (fine-tuning, dynamic thresholds, weighted similarity)
+- Production scaling strategies (vector databases, microservices, incremental processing)
+
+> **Requires Python >= 3.10.** See [requirements.txt](requirements.txt) for dependencies.
+
 ## Directory Structure
 
 ```
