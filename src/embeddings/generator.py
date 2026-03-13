@@ -15,6 +15,7 @@ import numpy as np
 from tqdm import tqdm
 import torch
 import torchvision.models as models
+from torchvision.models import ResNet18_Weights, ResNet50_Weights
 import torchvision.transforms as transforms
 from datetime import datetime
 from PIL import Image
@@ -32,13 +33,12 @@ class MediaEmbeddingGenerator:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using device: {self.device}")
         
-        # Load pre-trained model
+        # Load pre-trained model using the weights API (pretrained= was removed in torchvision 0.15+)
         if model_name == "resnet18":
-            self.model = models.resnet18(pretrained=True)
-            # Remove the final classification layer
+            self.model = models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
             self.model = torch.nn.Sequential(*(list(self.model.children())[:-1]))
         elif model_name == "resnet50":
-            self.model = models.resnet50(pretrained=True)
+            self.model = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
             self.model = torch.nn.Sequential(*(list(self.model.children())[:-1]))
         else:
             raise ValueError(f"Unsupported model name: {model_name}")
