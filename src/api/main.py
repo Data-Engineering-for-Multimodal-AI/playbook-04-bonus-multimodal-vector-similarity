@@ -43,7 +43,8 @@ class SearchResponse(BaseModel):
     stats: Dict[str, Any]
 
 # Global variables
-embedding_dir = os.environ.get("EMBEDDING_DIR", "data/embeddings")
+# run_pipeline.sh exports EMBEDDINGS_DIR; EMBEDDING_DIR is the name this file used first
+embedding_dir = os.environ.get("EMBEDDINGS_DIR", os.environ.get("EMBEDDING_DIR", "data/embeddings"))
 video_dir = os.environ.get("VIDEO_DIR", "data/videos")
 image_dir = os.environ.get("IMAGE_DIR", "data/images")
 quality_dir = os.environ.get("QUALITY_DIR", "data/quality")
