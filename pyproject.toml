@@ -1,0 +1,47 @@
+[project]
+name = "playbook-04-bonus-multimodal-vector-similarity"
+version = "2026.10"
+description = "ByteEats vector similarity search: ResNet video and image embeddings, FAISS search, quality checks and a dashboard (Data Engineering for Multimodal AI, Chapter 4 bonus)"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+dependencies = [
+    "torch>=2.3",
+    "torchvision>=0.18",
+    "faiss-cpu>=1.8",
+    "numpy>=1.26",
+    # Same library as opencv-python without the GUI functions, which the code doesn't use
+    "opencv-python-headless>=4.9",
+    "pillow>=10.2",
+    "scikit-learn>=1.4",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "pydantic>=2.5",
+    # Needed by the quality API's reference-image upload endpoint
+    "python-multipart>=0.0.9",
+    "requests>=2.31",
+    "dash>=2.16",
+    "plotly>=5.20",
+    "tqdm>=4.66",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    # FastAPI's TestClient (Starlette 1.x) uses httpx2
+    "httpx2>=2.0",
+]
+
+[tool.uv]
+package = false
+
+# On Linux, PyPI's torch is the CUDA build (several GB of CUDA libraries plus Triton).
+# This playbook runs on CPU, so Linux gets the CPU build. macOS and Windows use PyPI.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
