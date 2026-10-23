@@ -22,14 +22,14 @@ dependencies = [
     "requests>=2.31",
     "dash>=2.16",
     "plotly>=5.20",
+    # plotly.express needs pandas to draw the dashboard's embedding plot
+    "pandas>=2.1",
     "tqdm>=4.66",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8",
-    # FastAPI's TestClient (Starlette 1.x) uses httpx2
-    "httpx2>=2.0",
 ]
 
 [tool.uv]
