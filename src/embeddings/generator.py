@@ -33,7 +33,7 @@ class MediaEmbeddingGenerator:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using device: {self.device}")
         
-        # Load pre-trained model using the weights API (pretrained= was removed in torchvision 0.15+)
+        # Load pre-trained model using the weights API (pretrained= is deprecated since torchvision 0.13)
         if model_name == "resnet18":
             self.model = models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
             self.model = torch.nn.Sequential(*(list(self.model.children())[:-1]))
