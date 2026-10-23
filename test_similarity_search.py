@@ -123,7 +123,9 @@ def test_custom_query():
     print(f"\nCustom query using {image_id} embedding:")
     
     # Add some noise to create a slightly different query
-    noisy_query = query_vector + np.random.normal(0, 0.05, query_vector.shape)
+    # (seeded, so every run prints the same results)
+    rng = np.random.default_rng(42)
+    noisy_query = query_vector + rng.normal(0, 0.05, query_vector.shape)
     noisy_query = noisy_query / np.linalg.norm(noisy_query)  # Normalize
     
     # Find similar videos to the noisy query
