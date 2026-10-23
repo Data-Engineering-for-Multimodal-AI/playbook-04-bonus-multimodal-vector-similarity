@@ -15,10 +15,14 @@ import shutil
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
 
+# Folders cleanup never walks into: git data and virtual environments
+SKIP_DIRS = {".git", "venv", ".venv", "env", "ENV"}
+
 def clean_pycache():
     """Remove all __pycache__ directories."""
     count = 0
     for root, dirs, files in os.walk(parent_dir):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         if "__pycache__" in dirs:
             pycache_dir = os.path.join(root, "__pycache__")
             shutil.rmtree(pycache_dir)
@@ -61,9 +65,8 @@ def clean_temp_files():
     count = 0
     
     for root, dirs, files in os.walk(parent_dir):
-        # Skip .git directory
-        if '.git' in dirs:
-            dirs.remove('.git')
+        # Skip .git and virtual environments
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         
         for file in files:
             if any(file.endswith(ext) for ext in extensions):
