@@ -514,7 +514,11 @@ def main():
     print(f"Starting ByteEats Vector Similarity Search Dashboard on port {port}")
     print(f"API URL: {API_URL}")
     
-    app.run(host="0.0.0.0", port=port, debug=True)
+    # Local only by default. HOST=0.0.0.0 accepts connections from other machines;
+    # DASH_DEBUG=1 turns on Dash/Flask debug mode (never together with HOST=0.0.0.0)
+    host = os.environ.get("HOST", "127.0.0.1")
+    debug = os.environ.get("DASH_DEBUG", "0") == "1"
+    app.run(host=host, port=port, debug=debug)
 
 if __name__ == "__main__":
     main() 

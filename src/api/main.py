@@ -252,7 +252,8 @@ def main():
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting ByteEats Vector Similarity Search API on port {port}")
     initialize_api()
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Local only by default; HOST=0.0.0.0 accepts connections from other machines
+    uvicorn.run(app, host=os.environ.get("HOST", "127.0.0.1"), port=port)
 
 if __name__ == "__main__":
     main() 
