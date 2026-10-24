@@ -36,6 +36,7 @@ display_help() {
     echo "  VIDEO_DIR               Directory for videos (default: data/videos)"
     echo "  QUALITY_DIR             Directory for quality reports (default: data/quality)"
     echo "  EMBEDDINGS_DIR          Directory for embeddings (default: data/embeddings)"
+    echo "  HOST                    Address the servers listen on (default: 127.0.0.1, this machine only)"
     echo ""
 }
 

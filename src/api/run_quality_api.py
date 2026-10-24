@@ -70,7 +70,8 @@ def main():
     print(f"  Image directory: {IMAGE_DIR}")
     print(f"  Video directory: {VIDEO_DIR}")
     print(f"  Quality reports directory: {QUALITY_DIR}")
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    # Local only by default; HOST=0.0.0.0 accepts connections from other machines
+    uvicorn.run(app, host=os.environ.get("HOST", "127.0.0.1"), port=PORT)
 
 if __name__ == "__main__":
     main() 

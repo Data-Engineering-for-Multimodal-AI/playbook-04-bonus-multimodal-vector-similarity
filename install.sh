@@ -5,16 +5,17 @@ echo "ByteEats Vector Similarity Search Installation"
 echo "=============================================="
 echo
 
-# Check for Python 3.8+
-python_version=$(python3 --version 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-if [ "$python_version" -lt 38 ]; then
-    echo "Error: Python 3.8 or higher is required."
-    echo "Current version: $(python3 --version)"
+# Check for Python 3.12+ (set PYTHON to use a different interpreter)
+PYTHON=${PYTHON:-python3}
+if ! "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)'; then
+    echo "Error: Python 3.12 or higher is required."
+    echo "Current version: $("$PYTHON" --version 2>&1)"
+    echo "Run with a newer Python, for example: PYTHON=python3.12 ./install.sh"
     exit 1
 fi
 
 echo "Creating virtual environment..."
-python3 -m venv venv
+"$PYTHON" -m venv venv
 
 # Activate virtual environment
 if [ -f "venv/bin/activate" ]; then

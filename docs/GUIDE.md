@@ -400,11 +400,21 @@ export IMAGE_DIR=data/images
 bash run_pipeline.sh --start-api
 ```
 
+Then start the dashboard in a new terminal window:
+
+```bash
+cd /path/to/ByteEatsVectorSimilaritySearch
+export API_PORT=8085
+export DASHBOARD_PORT=8095
+export API_URL="http://localhost:8085"
+bash run_pipeline.sh --start-dashboard
+```
+
 You'll see:
 
 ```
 Starting ByteEats Vector Similarity Search Dashboard on port 8095
-Dash is running on http://0.0.0.0:8095/
+Dash is running on http://127.0.0.1:8095/
 ```
 
 To access the dashboard, open your web browser and navigate to: **http://localhost:8095/**

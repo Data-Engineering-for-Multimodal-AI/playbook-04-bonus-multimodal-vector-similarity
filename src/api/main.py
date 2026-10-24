@@ -43,7 +43,8 @@ class SearchResponse(BaseModel):
     stats: Dict[str, Any]
 
 # Global variables
-embedding_dir = os.environ.get("EMBEDDING_DIR", "data/embeddings")
+# run_pipeline.sh exports EMBEDDINGS_DIR; EMBEDDING_DIR is the name this file used first
+embedding_dir = os.environ.get("EMBEDDINGS_DIR", os.environ.get("EMBEDDING_DIR", "data/embeddings"))
 video_dir = os.environ.get("VIDEO_DIR", "data/videos")
 image_dir = os.environ.get("IMAGE_DIR", "data/images")
 quality_dir = os.environ.get("QUALITY_DIR", "data/quality")
@@ -251,8 +252,9 @@ def main():
     """Run the API server."""
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting ByteEats Vector Similarity Search API on port {port}")
-    initialize_api()
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # The lifespan hook initializes the API when uvicorn starts it
+    # Local only by default; HOST=0.0.0.0 accepts connections from other machines
+    uvicorn.run(app, host=os.environ.get("HOST", "127.0.0.1"), port=port)
 
 if __name__ == "__main__":
     main() 
