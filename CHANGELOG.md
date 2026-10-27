@@ -1,8 +1,14 @@
 # Changelog
 
+## 2026.10.1 (2026-10-27)
+
+### Changed
+- README: this repository is bonus content; the book doesn't print it (checked against the Early
+  Release). The differences section compares with the first edition (the `first-edition` tag).
+
 ## 2026.10 (2026-10-23): 2026 maintenance update
 
-The printed version is tagged `first-edition`.
+The first-edition version is tagged `first-edition`.
 
 ### Fixed
 - `install.sh` rejected every Python from 3.10 on: its check read "3.12" as 31 and compared it with 38. It now asks the interpreter and requires 3.12+; `PYTHON=` picks the interpreter.
