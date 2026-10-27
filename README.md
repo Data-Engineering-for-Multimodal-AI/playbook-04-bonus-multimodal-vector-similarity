@@ -1,9 +1,9 @@
 # ByteEats Vector Similarity Search
 
-**Chapter 4 bonus playbook** from *Data Engineering for Multimodal AI* (O'Reilly, 2026). Page numbers to be confirmed.
+**Bonus content for Chapter 4** of *Data Engineering for Multimodal AI* (O'Reilly, 2026). It is not printed in the book; it extends the [Chapter 4 playbook](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline).
 Book: https://oreil.ly/data-engineering-multimodal
 
-> Want the code exactly as printed? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the printed book](#differences-from-the-printed-book).
+> Want the code as it was when the book was published? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the first edition](#differences-from-the-first-edition).
 
 ## What you'll build
 
@@ -264,9 +264,9 @@ export IMAGE_DIR=data/images
 
 Every command in this README and the guide was run from a fresh clone of this branch on Python 3.12. The embeddings give the same analysis output as the first-edition code with its original versions (NumPy 1.26, OpenCV 4.11), and as the guide.
 
-## Differences from the printed book
+## Differences from the first edition
 
-| What | Printed book | Now | Why |
+| What | First edition | Now | Why |
 |---|---|---|---|
 | Clone URL and folder | `github.com/yourusername/ByteEatsVectorSimilaritySearch` | `playbook-04-bonus-multimodal-vector-similarity` | The repository's actual location |
 | Python | 3.8+ (`install.sh`), 3.10+ (README) | 3.12+ | Current dependencies |
