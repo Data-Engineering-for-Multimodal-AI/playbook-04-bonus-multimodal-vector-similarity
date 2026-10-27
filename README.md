@@ -59,7 +59,7 @@ and the API, quality check tool and dashboard as described below. The servers li
 make smoke    # or: uv run pytest -q
 ```
 
-`make smoke` (about a minute on a laptop CPU) generates embeddings for 3 videos and the 7 reference images, then checks FAISS search, the analysis scripts, the dashboard's plot, the API through `run_pipeline.sh --start-api`, the quality check tool, and three scores from the guide. GitHub Actions runs it on Python 3.12 and 3.13, plus the printed `pip install -r requirements.txt` path.
+`make smoke` (about a minute on a laptop CPU) generates embeddings for 3 videos and the 7 reference images, then checks FAISS search, the analysis scripts, the dashboard's plot, the API through `run_pipeline.sh --start-api`, the quality check tool, and three scores from the guide. GitHub Actions runs it on Python 3.12 and 3.13, plus the `pip install -r requirements.txt` path.
 
 ## Detailed Implementation
 
