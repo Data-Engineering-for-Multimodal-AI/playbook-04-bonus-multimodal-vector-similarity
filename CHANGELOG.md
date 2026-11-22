@@ -21,6 +21,9 @@ Nothing the book shows has changed.
   use 8085 and 8095. The defaults are now 8085 and 8095. `API_PORT`, `PORT`, `DASHBOARD_PORT` and
   `API_URL` still override them.
 
+### Changed
+- README opening: a title that says what you'll do, three sentences on why, the example and what you'll do, then the data engineering problem and what you'll work with.
+
 ## 2026.10.1 (2026-10-27)
 
 ### Changed

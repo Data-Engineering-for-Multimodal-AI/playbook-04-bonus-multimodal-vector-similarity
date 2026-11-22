@@ -1,7 +1,11 @@
-# ByteEats Vector Similarity Search
+# Playbook 04 bonus: Find similar cooking videos with vector search
+**How to turn video into embeddings and search them.** Bonus for the [Chapter 4 playbook](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline) of [*Data Engineering for Multimodal AI*](https://oreil.ly/data-engineering-multimodal) (O'Reilly, 2026). Not printed in the book.
 
-**Bonus content for Chapter 4** of *Data Engineering for Multimodal AI* (O'Reilly, 2026). It is not printed in the book; it extends the [Chapter 4 playbook](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline).
-Book: https://oreil.ly/data-engineering-multimodal
+To find cooking videos that look alike, you first have to turn each video into numbers you can compare. In this repo, we explore this with ByteEats' food preparation videos. Follow along to extract features from the videos, store them as vectors and search for the closest matches.
+
+**The problem.** Video can't be searched as it is; it has to become numbers first.
+
+**What you'll work with.** You'll extract features from video frames, store them as vector embeddings, and run a similarity search over them.
 
 > Want the code as it was when the book was published? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the first edition](#differences-from-the-first-edition).
 
