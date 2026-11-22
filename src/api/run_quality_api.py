@@ -19,7 +19,7 @@ sys.path.append(parent_dir)
 from src.api.quality_check_api import quality_router
 
 # API Configuration
-PORT = int(os.environ.get("PORT", 8080))
+PORT = int(os.environ.get("PORT", 8085))
 IMAGE_DIR = os.environ.get("IMAGE_DIR", "data/images")
 VIDEO_DIR = os.environ.get("VIDEO_DIR", "data/videos")
 QUALITY_DIR = os.environ.get("QUALITY_DIR", "data/quality")

@@ -23,7 +23,7 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(parent_dir)
 
 # Define the API URL
-API_URL = os.environ.get("API_URL", "http://localhost:8080")
+API_URL = os.environ.get("API_URL", "http://localhost:8085")
 
 # Initialize the Dash app
 app = Dash(__name__, title="ByteEats Embedding Dashboard")
@@ -509,7 +509,7 @@ def load_quality_reports(n_clicks):
 def main():
     """Run the dashboard server."""
     # Determine port (use different port than API)
-    port = int(os.environ.get("DASHBOARD_PORT", 8050))
+    port = int(os.environ.get("DASHBOARD_PORT", 8095))
     
     print(f"Starting ByteEats Vector Similarity Search Dashboard on port {port}")
     print(f"API URL: {API_URL}")

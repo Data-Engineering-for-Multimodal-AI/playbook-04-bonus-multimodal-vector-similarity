@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Monday 06:00 UTC, so breakage in upstream packages shows up
 
 jobs:
   smoke:
@@ -25,6 +27,40 @@ jobs:
           key: torch-resnet18-imagenet1k-v1
       - name: Smoke test
         run: make smoke
+      # README "Run it", steps 2 to 5, as written
+      - name: Run it, step 2 (make run)
+        run: |
+          set -o pipefail
+          make run 2>&1 | tee /tmp/run.txt
+          grep -q "Processed 32 videos and 7 images" /tmp/run.txt
+          grep -q "All tests completed successfully!" /tmp/run.txt
+      - name: Run it, steps 3 to 5 (make serve, make similar, make quality)
+        run: |
+          set -o pipefail
+          make serve > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 120); do curl -sf localhost:8085/ > /dev/null && break; sleep 2; done
+          make similar ID="download (25)" | tee /tmp/similar.txt
+          grep -qE "1\. download \(25\) +video +L2 distance 0\.0000" /tmp/similar.txt
+          make similar ID=Miso_Chicken | tee /tmp/similar2.txt
+          test "$(grep -c ' image ' /tmp/similar2.txt)" = 5
+          make quality VIDEO="download (25)" IMAGE=Salmon_Edamame.jpg THRESHOLD=0.8 | tee /tmp/quality.txt
+          grep -qE "best frame 0\.77[0-9]+, threshold 0\.8 -> FAILED" /tmp/quality.txt
+          pkill -f "src/api/main.py" || true
+          pkill -f "src/api/dashboard.py" || true
+      - name: Use your own data (file checks)
+        run: uv run --frozen pytest -q tests/test_own_data.py
+      - name: Try this 1 to 3
+        run: |
+          set -o pipefail
+          make try-frame-rate | tee /tmp/t1.txt
+          grep -qE "^ +10 +12 " /tmp/t1.txt
+          make try-index-types | tee /tmp/t2.txt
+          grep -qE "^Flat +100%" /tmp/t2.txt
+          make try-quality-thresholds | tee /tmp/t3.txt
+          grep -qE "download \(25\) vs Salmon_Edamame.jpg = 0\.77" /tmp/t3.txt
+      - name: API log on failure
+        if: failure()
+        run: tail -50 /tmp/serve.log || true
       - name: Printed install path (pip install -r requirements.txt), one video and the reference images
         run: |
           uv venv --seed --python ${{ matrix.python-version }} /tmp/pipenv
@@ -33,3 +69,15 @@ jobs:
           /tmp/pipenv/bin/python src/embeddings/generator.py --input /tmp/one,data/images --output data/embeddings
           /tmp/pipenv/bin/python analyze_embeddings.py
           /tmp/pipenv/bin/python test_similarity_search.py
+
+  devcontainer:
+    # Builds .devcontainer/ the way Codespaces does and runs the playbook inside it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the devcontainer and run the playbook
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          # The first output command, timed, as a reader would see it in a new Codespace
+          runCmd: start=$(date +%s) && make run && echo "Time to first output in a clean devcontainer was $(( $(date +%s) - start )) s"

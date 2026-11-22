@@ -18,7 +18,7 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
 
 # Default API URL
-API_URL = os.environ.get("API_URL", "http://localhost:8080")
+API_URL = os.environ.get("API_URL", "http://localhost:8085")
 
 def list_reference_images():
     """List all available reference images."""
@@ -235,7 +235,7 @@ def main():
     parser.add_argument("--reference", help="Reference image to compare against")
     parser.add_argument("--threshold", type=float, default=0.75, help="Quality threshold (0.5-0.95)")
     parser.add_argument("--reports", action="store_true", help="Show all quality reports")
-    parser.add_argument("--api-url", help="API URL (default: http://localhost:8080)")
+    parser.add_argument("--api-url", help="API URL (default: http://localhost:8085)")
     
     args = parser.parse_args()
     
