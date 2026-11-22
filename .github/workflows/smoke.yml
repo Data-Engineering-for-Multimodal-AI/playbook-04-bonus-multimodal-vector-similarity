@@ -44,7 +44,7 @@ jobs:
           make similar ID=Miso_Chicken | tee /tmp/similar2.txt
           test "$(grep -c ' image ' /tmp/similar2.txt)" = 5
           make quality VIDEO="download (25)" IMAGE=Salmon_Edamame.jpg THRESHOLD=0.8 | tee /tmp/quality.txt
-          grep -q "best frame 0.775., threshold 0.8 -> FAILED" /tmp/quality.txt
+          grep -qE "best frame 0\.77[0-9]+, threshold 0\.8 -> FAILED" /tmp/quality.txt
           pkill -f "src/api/main.py" || true
           pkill -f "src/api/dashboard.py" || true
       - name: Use your own data (file checks)
@@ -57,7 +57,7 @@ jobs:
           make try-index-types | tee /tmp/t2.txt
           grep -qE "^Flat +100%" /tmp/t2.txt
           make try-quality-thresholds | tee /tmp/t3.txt
-          grep -q "download (25) vs Salmon_Edamame.jpg = 0.775" /tmp/t3.txt
+          grep -qE "download \(25\) vs Salmon_Edamame.jpg = 0\.77" /tmp/t3.txt
       - name: API log on failure
         if: failure()
         run: tail -50 /tmp/serve.log || true

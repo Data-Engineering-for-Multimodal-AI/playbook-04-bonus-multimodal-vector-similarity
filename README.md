@@ -89,6 +89,8 @@ POST /api/quality/check {"video_id": "download (25)", "reference_image": "Salmon
   download (25) vs Salmon_Edamame.jpg: best frame 0.7753, threshold 0.8 -> FAILED (Needs review), 3.0 s
 ```
 
+In CI on Linux the same check scores 0.7773.
+
 Try `THRESHOLD=0.75`, another photo from `data/images/`, or the dashboard's Quality Assessment tab. Stop the servers with Ctrl+C.
 
 **6. Clean up.**
@@ -247,7 +249,7 @@ This playbook runs on one machine with sample data. Before you run something lik
 | Where you run it | Cost |
 |---|---|
 | Your machine | $0. Everything runs locally: no API keys, no paid services. The environment is about 1.1 GB, plus 45 MB of model weights. |
-| A GitHub Codespace (2 cores, 8 GB, the default size; this repo asks for no larger one) | Estimated $0.18 per hour at GitHub's list price (November 2026). A free personal account includes 120 core-hours a month, about 60 hours on this machine. |
+| A GitHub Codespace (2 cores, 8 GB, the default size; this repo asks for no larger one) | Estimated $0.18 per hour at GitHub's list price (November 2026). A free personal account includes 120 core-hours a month, about 60 hours on this machine. In CI, `make run` took 116 s in a freshly built devcontainer. |
 
 ## How it works
 
