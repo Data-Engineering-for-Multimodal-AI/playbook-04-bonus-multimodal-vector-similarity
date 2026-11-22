@@ -1,5 +1,8 @@
 .PHONY: setup run serve smoke embeddings analyze clean
 
+# A bare `make` runs the smoke test, as it did before the uniform targets were added.
+.DEFAULT_GOAL := smoke
+
 # Uniform targets for The Playbooks. The book prints no commands for this bonus playbook. The
 # README's commands (./install.sh or pip install -r requirements.txt,
 # ./run_pipeline.sh --generate-embeddings, --start-api, --start-dashboard, --quality-check,
