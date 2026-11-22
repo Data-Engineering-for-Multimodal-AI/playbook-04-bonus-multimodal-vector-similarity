@@ -5,6 +5,17 @@
 Nothing the book shows has changed.
 
 ### Added
+- `make similar ID=...` and `make quality VIDEO=... IMAGE=...` call the running API
+  (`scripts/ask_api.py`).
+- `make check-data DIR=...` and `make load DIR=...`: check a folder of your own videos and photos, then embed
+  them next to the sample embeddings and list their closest matches (`scripts/own_media.py`,
+  `tests/test_own_data.py`).
+- Three measured experiments: `make try-frame-rate`, `make try-index-types`, `make try-quality-thresholds`
+  (`experiments/`).
+- README: numbered Run it steps, time tiers, Try this, Use your own data, What you end up with, Before production,
+  What it costs.
+- CI: runs the Run it steps with checks on their output, the three experiments and the own-data tests; the
+  devcontainer job prints the time to first output.
 - `make setup`, `make run` and `make serve`. `make run` generates embeddings for the bundled
   videos and images, then runs the analysis and the similarity search script; `make serve` starts
   the API on port 8085 and the dashboard on port 8095. `make smoke`, `make embeddings`,
@@ -22,6 +33,8 @@ Nothing the book shows has changed.
   `API_URL` still override them.
 
 ### Changed
+- README: "What you'll build" is now "How it works", without the paragraph the opening repeats. "Quick start" is
+  now "Run it the way the book does", with the same steps.
 - README opening: a title that says what you'll do, three sentences on why, the example and what you'll do, then the data engineering problem and what you'll work with.
 
 ## 2026.10.1 (2026-10-27)

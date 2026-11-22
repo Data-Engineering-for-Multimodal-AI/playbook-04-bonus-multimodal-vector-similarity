@@ -1,4 +1,4 @@
-.PHONY: setup run serve smoke embeddings analyze clean
+.PHONY: setup run serve similar quality check-data load try-frame-rate try-index-types try-quality-thresholds smoke embeddings analyze clean
 
 # A bare `make` runs the smoke test, as it did before the uniform targets were added.
 .DEFAULT_GOAL := smoke
@@ -28,6 +28,40 @@ serve: setup
 	uv run --frozen bash -c 'PORT=$(API_PORT) python src/api/main.py & api=$$!; \
 		trap "kill $$api 2>/dev/null" EXIT; \
 		DASHBOARD_PORT=$(DASHBOARD_PORT) API_URL=http://localhost:$(API_PORT) python src/api/dashboard.py'
+
+# With the API running (make serve): the closest videos and photos to one, and a quality check.
+#   make similar ID="download (25)"
+#   make quality VIDEO="download (25)" IMAGE=Salmon_Edamame.jpg THRESHOLD=0.8
+similar:
+	@test -n "$(ID)" || { echo 'Usage: make similar ID="download (25)"'; exit 2; }
+	uv run --frozen python scripts/ask_api.py similar "$(ID)"
+
+quality:
+	@test -n "$(VIDEO)" -a -n "$(IMAGE)" || { echo 'Usage: make quality VIDEO="download (25)" IMAGE=Salmon_Edamame.jpg [THRESHOLD=0.8]'; exit 2; }
+	uv run --frozen python scripts/ask_api.py quality "$(VIDEO)" "$(IMAGE)" --threshold $(or $(THRESHOLD),0.75)
+
+# Your own videos and photos: videos/ and images/ in DIR. check-data checks every file and writes
+# nothing; load adds their embeddings to data/embeddings and lists the closest matches.
+#   make check-data DIR=my_media
+#   make load DIR=my_media
+check-data:
+	@test -n "$(DIR)" || { echo "Usage: make check-data DIR=path/to/folder"; exit 2; }
+	uv run --frozen python scripts/own_media.py --dir "$(DIR)" --check-only
+
+load:
+	@test -n "$(DIR)" || { echo "Usage: make load DIR=path/to/folder"; exit 2; }
+	uv run --frozen python scripts/own_media.py --dir "$(DIR)"
+
+# Try this: three measured experiments (see README, "Try this"). CPU only, no Docker.
+# The first two need the embeddings from make run.
+try-frame-rate: setup
+	uv run --frozen python experiments/frame_rate.py
+
+try-index-types: setup
+	uv run --frozen python experiments/index_types.py
+
+try-quality-thresholds: setup
+	uv run --frozen python experiments/quality_thresholds.py
 
 # Sample data, embeddings on a subset, FAISS search, the APIs, the quality tool, the dashboard. CPU only.
 smoke:

@@ -7,11 +7,249 @@ To find cooking videos that look alike, you first have to turn each video into n
 
 **What you'll work with.** You'll extract features from video frames, store them as vector embeddings, and run a similarity search over them.
 
-> Want the code as it was when the book was published? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the first edition](#differences-from-the-first-edition).
+> The original steps are under [Run it the way the book does](#run-it-the-way-the-book-does) and still work as shown. Want the code as it was when the book was published? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the first edition](#differences-from-the-first-edition).
 
-## What you'll build
+## Run it
 
-An advanced vector embedding and similarity search system for food preparation videos. This system demonstrates complex data transformation by converting unstructured video data into structured vector embeddings and implementing efficient similarity search.
+You need [uv](https://docs.astral.sh/uv/) and `make`. No Docker, no GPU, no API keys; the first run downloads the ResNet-18 weights (about 45 MB). Or open the repo in a GitHub Codespace, where uv and `make` are ready. On Windows without `make`, use a Codespace or the original steps below.
+
+**1. Get the code.** The clone is about 131 MB, including the 32 sample videos.
+
+```bash
+git clone https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity.git
+cd playbook-04-bonus-multimodal-vector-similarity
+```
+
+**2. Embed the videos and photos.** Installs the locked dependencies (`uv sync`), turns the 32 videos and 7 reference photos into 512-number vectors with ResNet-18 (`python src/embeddings/generator.py`, which `./run_pipeline.sh --generate-embeddings` runs), then runs `python analyze_embeddings.py` and `python test_similarity_search.py`. On a Mac this took 2 min 41 s, most of it the videos.
+
+```bash
+make run
+```
+
+You should see, among the analysis output:
+
+```
+Processed 32 videos and 7 images
+Found 32 video embeddings and 7 image embeddings
+Tuna_Lover:
+  1. download (15): 0.7764
+  2. download (12): 0.7535
+All tests completed successfully!
+```
+
+These are cosine similarities between each reference photo and each video (1.0 means identical). The vectors are in `data/embeddings/`.
+
+**3. Start the API and the dashboard.** Starts the similarity search API on port 8085 (`python src/api/main.py`) and the dashboard on port 8095 (`python src/api/dashboard.py`). Leave it running. On a Mac the API answered after 14 s.
+
+```bash
+make serve
+```
+
+You should see `API initialized with 39 embeddings` and `Dash is running on http://127.0.0.1:8095/`. Open http://localhost:8095 for the dashboard and http://localhost:8085/docs for the API.
+
+**4. Search.** In a second terminal. The videos and photos closest to one video, through `GET /api/similar/{id}`:
+
+```bash
+make similar ID="download (25)"
+```
+
+```
+GET /api/similar/download%20%2825%29?k=5
+  1. download (25)        video  L2 distance 0.0000  similarity_score 1.0000
+  2. download (12)        video  L2 distance 0.2326  similarity_score 0.8113
+  3. download (13)        video  L2 distance 0.2501  similarity_score 0.7999
+  4. download (24)        video  L2 distance 0.2711  similarity_score 0.7867
+  5. download (1)         video  L2 distance 0.2714  similarity_score 0.7865
+```
+
+The video finds itself first. Here `similarity_score` is 1 / (1 + L2 distance), a different scale from the cosine scores in step 2. Now ask for a photo's neighbors:
+
+```bash
+make similar ID=Miso_Chicken
+```
+
+```
+  1. Miso_Chicken         image  L2 distance 0.0000  similarity_score 1.0000
+  2. House_Salmon         image  L2 distance 0.2187  similarity_score 0.8206
+  3. Tuna_Lover           image  L2 distance 0.2293  similarity_score 0.8135
+  4. Crispy_Shoyu         image  L2 distance 0.2368  similarity_score 0.8086
+  5. Miso_Salmon          image  L2 distance 0.2442  similarity_score 0.8037
+```
+
+All five are photos: the index holds videos and photos together, and photos are closer to each other than to any video.
+
+**5. Check a video against a reference photo.** `POST /api/quality/check` compares 8 frames of the video with the photo and passes it if the best frame reaches the threshold (the guide's first example):
+
+```bash
+make quality VIDEO="download (25)" IMAGE=Salmon_Edamame.jpg THRESHOLD=0.8
+```
+
+```
+POST /api/quality/check {"video_id": "download (25)", "reference_image": "Salmon_Edamame.jpg", "threshold": 0.8}
+  download (25) vs Salmon_Edamame.jpg: best frame 0.7753, threshold 0.8 -> FAILED (Needs review), 3.0 s
+```
+
+Try `THRESHOLD=0.75`, another photo from `data/images/`, or the dashboard's Quality Assessment tab. Stop the servers with Ctrl+C.
+
+**6. Clean up.**
+
+```bash
+make clean
+```
+
+This deletes `data/embeddings/` and `data/quality/`, including the embeddings of your own files. The sample data, `.venv/` and the downloaded weights (in `~/.cache/torch`) stay.
+
+## How much time do you have?
+
+| Time | What to do |
+|---|---|
+| 15 minutes | [Run it](#run-it), steps 1 to 5. On a Mac, step 2 took 2 min 41 s. |
+| 1 hour | The three [Try this](#try-this) experiments (about 4 minutes together on a Mac), then the [Bonus Content Guide](docs/GUIDE.md) with the dashboard. |
+| 1 day | [Use your own data](#use-your-own-data): embed your own videos and photos and search them, then work through [Before production](#before-production). |
+
+## Try this
+
+Each experiment changes one thing and measures the effect. None of them needs Docker or a network. The numbers below are from a Mac on 2026-11-21; times vary with the machine and its load. The first two need step 2's embeddings.
+
+**1. How many frames does a video embedding need?** The generator runs every 5th frame through ResNet-18 and averages them: 24 frames per 5-second clip. This re-embeds the 32 videos from fewer frames and compares with the saved embeddings.
+
+```bash
+make try-frame-rate
+```
+
+```
+every Nth frame  frames    time similarity to saved  lowest  same top 3 per photo
+              5      24    106s              1.0000   1.000                7 of 7
+             10      12     54s              0.9993   0.999                6 of 7
+             30       4     21s              0.9931   0.982                1 of 7
+             60       2     10s              0.9800   0.929                0 of 7
+            120       1      4s              0.9404   0.797                0 of 7
+```
+
+Time falls with the frame count, and the vectors stay over 0.99 similar down to 4 frames. The search results don't: with 4 frames, only 1 of the 7 photos keeps the same three closest videos. The videos sit so close together that small changes reorder them. Judge a sampling rate by the search results it gives, not by how similar the vectors are.
+
+**2. Does the FAISS index type change the results?** `src/similarity/search.py` offers Flat (exact; the API uses it), IVF and HNSW. This builds each over the 39 embeddings and counts how many of each embedding's 5 exact nearest neighbors it returns.
+
+```bash
+make try-index-types
+```
+
+```
+index                        recall@5  search time (all queries)
+Flat                            100%                    0.58 ms
+IVF, nprobe 1 (search.py)        15%                    1.42 ms
+IVF, nprobe 2                    46%                    0.19 ms
+IVF, nprobe 4                    81%                    0.26 ms
+IVF, nprobe 8                   100%                    0.24 ms
+HNSW (M=32)                     100%                    1.14 ms
+
+IVF has nlist = 24 clusters for 39 vectors.
+```
+
+IVF as `search.py` builds it finds 15% of the right neighbors, because it searches 1 of 24 clusters (FAISS also warns it needs at least 936 training points for 24 clusters). At this size every index answers in about a millisecond, so Flat is the right choice; set `nprobe` before you switch to IVF.
+
+**3. Can the quality check tell one dish from another?** Each video shows one dish, so it should pass against at most one of the 7 reference photos. This scores every video against every photo the way the quality check does (best of 8 frames) and counts the passes at four thresholds.
+
+```bash
+make try-quality-thresholds
+```
+
+```
+threshold   pairs passed  videos passing 2+ photos  photos per video: mean (max)
+     0.65    109 of 224                19 of 32                      3.4 (7)
+     0.75     21 of 224                 5 of 32                      0.7 (6)
+     0.80      1 of 224                 0 of 32                      0.0 (1)
+     0.85      0 of 224                 0 of 32                      0.0 (0)
+
+Scores range from 0.536 to 0.821. Gap between a video's best and second-best photo: median 0.018, largest 0.041.
+Check against the guide: download (25) vs Salmon_Edamame.jpg = 0.7753
+```
+
+At the default 0.75, five videos pass against two or more different dishes and one against six; at 0.80 almost nothing passes. The best and second-best photo for a video differ by 0.018 on the median, so the threshold decides more than the dish does. An ImageNet model sees "a bowl of food", not which bowl.
+
+## Use your own data
+
+Put your files in a folder:
+
+```
+my_media/
+  videos/   .mp4 .avi .mov     food preparation clips
+  images/   .jpg .jpeg .png    photos of finished dishes (optional)
+```
+
+The file name without its extension becomes the ID you search by (`make similar ID=...`), so names must be unique across both folders and the sample data. Check the folder first. This reads every file and writes nothing:
+
+```bash
+make check-data DIR=my_media
+```
+
+It reports every problem with the file and the reason, and stops if there is any. On a test folder with deliberately bad files:
+
+```
+8 problem(s) in bad_media; nothing was written:
+  videos/CLOSEUP.MP4: upper-case extension; the generator skips it. Rename it to CLOSEUP.mp4
+  videos/broken.mp4: not a .mp4 video (no file header)
+  videos/clip2.mp4: a Git LFS pointer, not the file (run git lfs pull)
+  videos/download (3).mp4: data/embeddings already has 'download (3)' (from data/videos/download (3).mp4); rename the file
+  videos/photo.jpg: not one of .mp4 .avi .mov; put it in images/
+  images/bowl.jpg: same name as videos/bowl.mp4; their embeddings would overwrite each other
+  images/empty.png: empty file
+  images/tiny.png: too small (16x16), needs at least 32x32
+```
+
+It also checks for a video OpenCV can't open, one with no readable frames or no frame rate (the generator divides by it), one so long that its sampled frames would take more than 2 GB of memory, and a comma in the folder path (the generator splits its input on commas). When everything passes, embed the files and see their closest matches:
+
+```bash
+make load DIR=my_media
+```
+
+On a test folder with one video (sample `download (25)` mirrored and scaled down to 640x360) and one photo (the middle of `Tuna_Lover.jpg`), this took 16 s on a Mac:
+
+```
+my_media: 1 videos and 1 images. All checks passed.
+...
+Processed 1 videos and 1 images
+...
+Closest matches among 41 embeddings (cosine similarity; 1.0 is identical):
+  mirrored_bowl                download (25) 0.989, download (12) 0.874, download (13) 0.870
+  my_tuna_bowl                 Tuna_Lover 0.870, Miso_Salmon 0.836, House_Salmon 0.834
+```
+
+Both find the file they were made from. The embeddings go to `data/embeddings/` next to the sample ones, so after a restart of `make serve` the API searches them too (`make similar ID=mirrored_bowl`). The quality check reads videos from `data/videos/` and photos from `data/images/`; set `VIDEO_DIR` and `IMAGE_DIR` before `make serve` to point it at your folders. Loading the same folder again replaces its embeddings.
+
+## What you end up with
+
+A searchable index of your own videos and photos, an API and a dashboard on top of it, and measurements of how frame sampling, index type and thresholds change the answers.
+
+Skills you'll practice:
+- Turning video into one vector by sampling frames and averaging their embeddings
+- Building and querying FAISS indexes, and measuring their recall against exact search
+- Comparing videos with photos in one embedding space, and seeing where that breaks
+- Choosing thresholds from measured score distributions
+- Validating media files before they reach an embedding job
+
+## Before production
+
+This playbook runs on one machine with sample data. Before you run something like it for real:
+
+1. **Keep videos and photos apart in the index, or filter by type.** One Flat index holds both, and a photo's five nearest neighbors are all photos (step 4). Search each modality in its own index, or filter on `media_type`. *Chapter 2, "Embeddings and Retrieval in Multimodal Data Architectures" (page 40).*
+2. **Don't pass or fail dishes on a single ImageNet similarity.** At the default threshold of 0.75, five of 32 videos passed against two or more different dishes, and a video's best and second-best photo differ by 0.018 on the median ([Try this 3](#try-this)). Use a model that knows the dishes, or several reference photos per dish. *Chapter 4, "Validation, Transformation, Observability, and Annotation Across Modalities" (page 119).*
+3. **Tune IVF before you use it.** `search.py` builds 24 IVF clusters for 39 vectors and searches 1, which found 15% of the true neighbors; `nprobe` 8 found 100% ([Try this 2](#try-this)). *Chapter 6, "Vector Databases" (page 180).*
+4. **Choose the frame sampling by its search results.** Every 30th frame is five times faster than every 5th and gives vectors 0.993 similar, yet changes the top three videos for 6 of 7 photos ([Try this 1](#try-this)). *Chapter 4, "Balancing Cost, Latency, and Fidelity" (page 118).*
+5. **Match IDs exactly.** The quality API takes the first file whose name starts with `video_id` and the first photo whose name contains `reference_image`, in file-system order: `"download"` checked `download (16)`, and `"Salmon"` picked `Salmon_Edamame.jpg`. *Chapter 12, "Pattern 1: On-the-Wire Contracts" (page 455).*
+6. **Record how each vector was made.** The metadata says `"model_used": "resnet18"` even when you pass `--model resnet50`, and it doesn't record the frame sampling rate, so vectors made in different ways can end up in one index. *Chapter 8, "Data Versioning and Experiment Tracking for Multimodal AI" (page 276).*
+7. **Stream frames instead of holding them.** The generator keeps every sampled frame of a video in memory at full resolution before it embeds any of them. `make check-data` refuses videos that would need more than 2 GB; the generator itself has no limit. *Chapter 9, "Modality-Specific Scaling Profiles" (page 332).*
+8. **Don't use file names as IDs.** The generator skips `.MP4` and `.JPG` without a message, and two files with the same name overwrite each other's embedding. Give each file an ID and record its source. *Chapter 11, "Lineage and Provenance Tracking" (page 416).*
+9. **Lock down uploads.** `POST /api/quality/upload_reference` saves the file under whatever name the client sends, with no authentication and no check of the content. *Chapter 11, "Protecting Data Across the Pipeline" (page 421).*
+
+## What it costs
+
+| Where you run it | Cost |
+|---|---|
+| Your machine | $0. Everything runs locally: no API keys, no paid services. The environment is about 1.1 GB, plus 45 MB of model weights. |
+| A GitHub Codespace (2 cores, 8 GB, the default size; this repo asks for no larger one) | Estimated $0.18 per hour at GitHub's list price (November 2026). A free personal account includes 120 core-hours a month, about 60 hours on this machine. |
+
+## How it works
 
 - **Video Feature Extraction**: Extracts meaningful features from food preparation videos
 - **Vector Embedding Generation**: Transforms video features into 512-dimensional vector embeddings using ResNet
@@ -23,7 +261,9 @@ Everything runs on a laptop CPU with the bundled sample data (32 videos, 7 refer
 
 For a step-by-step walkthrough with expected output and dashboard screenshots, see the **[Bonus Content Guide](docs/GUIDE.md)**. Its results reproduce exactly with this version (see [Expected output](#expected-output)).
 
-## Quick start
+## Run it the way the book does
+
+The book doesn't print this repository; these are the original steps, and they still work as shown. [Run it](#run-it) above runs the same steps with `make`.
 
 You need Python 3.12 or newer and about 1.2 GB of disk space for the environment.
 
@@ -64,6 +304,8 @@ make smoke    # or: uv run pytest -q
 ```
 
 `make smoke` (about a minute on a laptop CPU) generates embeddings for 3 videos and the 7 reference images, then checks FAISS search, the analysis scripts, the dashboard's plot, the API through `run_pipeline.sh --start-api`, the quality check tool, and three scores from the guide. GitHub Actions runs it on Python 3.12 and 3.13, plus the `pip install -r requirements.txt` path.
+
+`uv run pytest -q tests/test_own_data.py` checks the file checks behind `make check-data` (a few seconds). `make similar`, `make quality`, `make check-data` and `make load`: see [Run it](#run-it) and [Use your own data](#use-your-own-data).
 
 ## Detailed Implementation
 
@@ -393,12 +635,14 @@ INFO:     Uvicorn running on http://127.0.0.1:8085 (Press CTRL+C to quit)
 │   ├── api/run_quality_api.py        # Quality check API on its own
 │   ├── api/dashboard.py              # Dash dashboard
 │   └── utils/                        # quality_checker.py, init.py (setup helpers)
-├── scripts/                          # quality_check.py (CLI tool), setup_directories.py, cleanup.py
+├── scripts/                          # quality_check.py (CLI tool), setup_directories.py, cleanup.py,
+│                                     # ask_api.py (make similar, make quality), own_media.py (make check-data, make load)
+├── experiments/                      # make try-*: the three Try this experiments
 ├── data/                             # Sample videos, images and orders (see data/README.md)
 ├── docs/GUIDE.md, docs/images/       # Bonus content guide and screenshots
 ├── analyze_embeddings.py, test_similarity_search.py, test_api_client.py, test_quality_api.py
 ├── run_pipeline.sh, install.sh
-├── tests/test_smoke.py, Makefile
+├── tests/test_smoke.py, tests/test_own_data.py, Makefile
 ├── pyproject.toml, uv.lock           # Dependencies (uv)
 ├── requirements.txt                  # Pinned, exported from uv.lock
 ├── CHANGELOG.md
