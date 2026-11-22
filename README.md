@@ -681,6 +681,8 @@ This project showcases advanced data engineering techniques:
 - **Fast Similarity Search**: Using FAISS for efficient nearest-neighbor queries
 - **Cross-Modal Comparison**: Matching videos against images using the same embedding space
 
+If this playbook helped you, a star helps other readers find it.
+
 ## License
 
 The ByteEats Vector Similarity Search project is licensed under the MIT License. The sample data in `data/` and the screenshots in `docs/images/` are MIT-licensed too.
