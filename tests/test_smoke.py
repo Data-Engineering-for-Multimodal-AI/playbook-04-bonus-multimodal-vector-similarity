@@ -8,6 +8,7 @@ The first run downloads the ResNet-18 weights (about 45 MB) from download.pytorc
 import json
 import os
 import shutil
+import signal
 import socket
 import subprocess
 import sys
@@ -136,8 +137,33 @@ print(len(figure.data[0].x))
 
 # ------------------------------------------------------------------ servers and the quality tool
 
-def test_api_server_and_quality_tool(workdir):
-    """run_pipeline.sh --start-api, then the quality tool's non-interactive mode, as a reader would."""
+def stop(process):
+    """Stop a server and everything it started. run_pipeline.sh runs `python src/api/main.py` as a
+    child of bash, so terminating bash alone would leave the API listening; the whole process
+    group is signalled instead."""
+    def signal_group(sig):
+        try:
+            os.killpg(process.pid, sig)
+            return True
+        except ProcessLookupError:   # the group has no processes left
+            return False
+
+    signal_group(signal.SIGTERM)
+    try:
+        process.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        pass
+    for _ in range(20):   # give the API a few seconds to shut down
+        if not signal_group(0):
+            break
+        time.sleep(0.5)
+    signal_group(signal.SIGKILL)
+    process.wait(timeout=30)
+
+
+@pytest.fixture
+def api_server(workdir):
+    """run_pipeline.sh --start-api on a free port, in its own process group. Always stopped."""
     port = free_port()
     env = dict(os.environ, API_PORT=str(port), IMAGE_DIR="data/images", VIDEO_DIR="data/videos",
                EMBEDDINGS_DIR="data/embeddings", QUALITY_DIR="data/quality")
@@ -147,7 +173,8 @@ def test_api_server_and_quality_tool(workdir):
             shutil.copytree(os.path.join(ROOT, folder), workdir / folder,
                             ignore=shutil.ignore_patterns("__pycache__"))
     server = subprocess.Popen(["bash", "run_pipeline.sh", "--start-api"], cwd=workdir, env=env,
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                              start_new_session=True)
     try:
         url = f"http://127.0.0.1:{port}"
         for _ in range(240):
@@ -157,30 +184,37 @@ def test_api_server_and_quality_tool(workdir):
             except OSError:
                 assert server.poll() is None, "API exited during startup"
                 time.sleep(0.5)
-        videos = json.load(urllib.request.urlopen(url + "/api/videos"))
-        assert {v[:-4] for v in VIDEOS} <= {v["video_id"] for v in videos}   # lists the images too
-        similar = json.load(urllib.request.urlopen(url + "/api/similar/download%20%2825%29"))["results"]
-        assert similar[0]["video_id"] == "download (25)"
-        request = urllib.request.Request(url + "/api/quality/check", method="POST",
-                                         headers={"Content-Type": "application/json"},
-                                         data=json.dumps({"video_id": "download (25)",
-                                                          "reference_image": "Salmon_Edamame.jpg",
-                                                          "threshold": 0.80}).encode())
-        report = json.load(urllib.request.urlopen(request, timeout=120))
-        # docs/GUIDE.md: download (25) vs Salmon_Edamame.jpg scores 0.7753 and fails at 0.80
-        assert report["quality_passed"] is False
-        assert report["max_similarity_score"] == pytest.approx(0.7753, abs=0.005)
-        result = subprocess.run([sys.executable, "scripts/quality_check.py", "--api-url", url,
-                                 "--video", "download (20)", "--reference", "Salmon_Edamame.jpg",
-                                 "--threshold", "0.75"], cwd=workdir, env=env,
-                                capture_output=True, text=True, timeout=300)
-        assert result.returncode == 0, result.stdout + result.stderr
-        # docs/GUIDE.md: download (20) vs Salmon_Edamame.jpg scores 0.6371 and fails at 0.75
-        assert "QUALITY CHECK: FAILED" in result.stdout
-        assert "Similarity Score: 0.63" in result.stdout or "Similarity Score: 0.64" in result.stdout
+        yield url, env
     finally:
-        server.terminate()
-        server.wait(timeout=30)
+        stop(server)
+    with socket.socket() as s:
+        assert s.connect_ex(("127.0.0.1", port)) != 0, f"the API is still listening on port {port}"
+
+
+def test_api_server_and_quality_tool(workdir, api_server):
+    """run_pipeline.sh --start-api, then the quality tool's non-interactive mode, as a reader would."""
+    url, env = api_server
+    videos = json.load(urllib.request.urlopen(url + "/api/videos"))
+    assert {v[:-4] for v in VIDEOS} <= {v["video_id"] for v in videos}   # lists the images too
+    similar = json.load(urllib.request.urlopen(url + "/api/similar/download%20%2825%29"))["results"]
+    assert similar[0]["video_id"] == "download (25)"
+    request = urllib.request.Request(url + "/api/quality/check", method="POST",
+                                     headers={"Content-Type": "application/json"},
+                                     data=json.dumps({"video_id": "download (25)",
+                                                      "reference_image": "Salmon_Edamame.jpg",
+                                                      "threshold": 0.80}).encode())
+    report = json.load(urllib.request.urlopen(request, timeout=120))
+    # docs/GUIDE.md: download (25) vs Salmon_Edamame.jpg scores 0.7753 and fails at 0.80
+    assert report["quality_passed"] is False
+    assert report["max_similarity_score"] == pytest.approx(0.7753, abs=0.005)
+    result = subprocess.run([sys.executable, "scripts/quality_check.py", "--api-url", url,
+                             "--video", "download (20)", "--reference", "Salmon_Edamame.jpg",
+                             "--threshold", "0.75"], cwd=workdir, env=env,
+                            capture_output=True, text=True, timeout=300)
+    assert result.returncode == 0, result.stdout + result.stderr
+    # docs/GUIDE.md: download (20) vs Salmon_Edamame.jpg scores 0.6371 and fails at 0.75
+    assert "QUALITY CHECK: FAILED" in result.stdout
+    assert "Similarity Score: 0.63" in result.stdout or "Similarity Score: 0.64" in result.stdout
 
 
 def test_servers_listen_locally_by_default():

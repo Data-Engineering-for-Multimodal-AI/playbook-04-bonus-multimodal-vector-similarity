@@ -250,7 +250,7 @@ async def get_stats():
 
 def main():
     """Run the API server."""
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 8085))
     print(f"Starting ByteEats Vector Similarity Search API on port {port}")
     # The lifespan hook initializes the API when uvicorn starts it
     # Local only by default; HOST=0.0.0.0 accepts connections from other machines

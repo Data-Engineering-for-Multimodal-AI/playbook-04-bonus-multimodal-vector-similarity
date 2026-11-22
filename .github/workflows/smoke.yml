@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Monday 06:00 UTC, so breakage in upstream packages shows up
 
 jobs:
   smoke:
@@ -25,6 +27,8 @@ jobs:
           key: torch-resnet18-imagenet1k-v1
       - name: Smoke test
         run: make smoke
+      - name: One-command run
+        run: make run
       - name: Printed install path (pip install -r requirements.txt), one video and the reference images
         run: |
           uv venv --seed --python ${{ matrix.python-version }} /tmp/pipenv
@@ -33,3 +37,14 @@ jobs:
           /tmp/pipenv/bin/python src/embeddings/generator.py --input /tmp/one,data/images --output data/embeddings
           /tmp/pipenv/bin/python analyze_embeddings.py
           /tmp/pipenv/bin/python test_similarity_search.py
+
+  devcontainer:
+    # Builds .devcontainer/ the way Codespaces does and runs the playbook inside it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the devcontainer and run the playbook
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: make run

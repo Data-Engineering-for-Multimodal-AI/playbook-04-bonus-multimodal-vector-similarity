@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased (v1.1.0)
+
+Nothing the book shows has changed.
+
+### Added
+- `make setup`, `make run` and `make serve`. `make run` generates embeddings for the bundled
+  videos and images, then runs the analysis and the similarity search script; `make serve` starts
+  the API on port 8085 and the dashboard on port 8095. `make smoke`, `make embeddings`,
+  `make analyze` and `make clean` are unchanged.
+- `.devcontainer/` so the repo opens in GitHub Codespaces with dependencies installed.
+- CI: a weekly scheduled run, a `make run` step, and a job that builds the devcontainer and runs
+  `make run` inside it.
+
+### Fixed
+- The smoke test started the API through `run_pipeline.sh` and stopped only the shell, so
+  `python src/api/main.py` kept listening after the tests ended. The test now starts it in its own
+  process group, always stops the whole group, and checks that the port is closed.
+- The code's default ports were 8080 (API) and 8050 (dashboard), while the README and the guide
+  use 8085 and 8095. The defaults are now 8085 and 8095. `API_PORT`, `PORT`, `DASHBOARD_PORT` and
+  `API_URL` still override them.
+
 ## 2026.10.1 (2026-10-27)
 
 ### Changed

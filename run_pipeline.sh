@@ -3,8 +3,8 @@
 # This script runs the various components of the ByteEats system
 
 # Default configuration
-API_PORT=${API_PORT:-8080}
-DASHBOARD_PORT=${DASHBOARD_PORT:-8050}
+API_PORT=${API_PORT:-8085}
+DASHBOARD_PORT=${DASHBOARD_PORT:-8095}
 IMAGE_DIR=${IMAGE_DIR:-"data/images"}
 VIDEO_DIR=${VIDEO_DIR:-"data/videos"}
 QUALITY_DIR=${QUALITY_DIR:-"data/quality"}
@@ -29,8 +29,8 @@ display_help() {
     echo "  --help                  Display this help message"
     echo ""
     echo "Environment variables:"
-    echo "  API_PORT                Port for the API server (default: 8080)"
-    echo "  DASHBOARD_PORT          Port for the dashboard server (default: 8050)"
+    echo "  API_PORT                Port for the API server (default: 8085)"
+    echo "  DASHBOARD_PORT          Port for the dashboard server (default: 8095)"
     echo "  API_URL                 URL for the API server (default: http://localhost:<API_PORT>)"
     echo "  IMAGE_DIR               Directory for reference images (default: data/images)"
     echo "  VIDEO_DIR               Directory for videos (default: data/videos)"
