@@ -543,6 +543,8 @@ Details are in [CHANGELOG.md](CHANGELOG.md).
 
 None of it shows a real restaurant, kitchen, robot, customer or person. [data/README.md](data/README.md) lists every file and what uses it.
 
+The full list, with sources, licenses and citations, is in [DATA_LICENSES.md](DATA_LICENSES.md).
+
 ## Expected output
 
 From a fresh clone on 2026-10-23, macOS 26.5.1 (arm64), Python 3.12.15.

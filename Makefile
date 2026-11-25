@@ -20,6 +20,7 @@ setup:
 # and the similarity search results. CPU only; exits when done.
 run: setup
 	@$(MAKE) --no-print-directory embeddings analyze
+	@echo "playbook-04-bonus-multimodal-vector-similarity" > .playbook-done
 
 # Start the similarity search API (http://localhost:8085) and the dashboard
 # (http://localhost:8095). Runs until Ctrl-C. Generates the embeddings first if they are missing.
