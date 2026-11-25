@@ -85,3 +85,6 @@ data/embeddings_test/
 data/results/
 data/quality/
 AUDIT.md
+
+# written by a passing `make run`; read by `make card` in the .github repo
+.playbook-done
