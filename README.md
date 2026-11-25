@@ -1,5 +1,15 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/header-dark.png">
+  <img src="docs/img/header-light.png" alt="Playbook 04 bonus, a companion to Chapter 4 of Data Engineering for Multimodal AI. Build: video similarity search. Data: video and images." width="100%">
+</picture>
+
 # Playbook 04 bonus: Find similar cooking videos with vector search
 **How to turn video into embeddings and search them.** Bonus for the [Chapter 4 playbook](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline) of [*Data Engineering for Multimodal AI*](https://oreil.ly/data-engineering-multimodal) (O'Reilly, 2026). Not printed in the book.
+
+[![Tests](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity/actions/workflows/smoke.yml/badge.svg?branch=master)](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity/actions/workflows/smoke.yml)
+![Python 3.12 | 3.13](https://img.shields.io/badge/python-3.12%20%7C%203.13-1f1a19?labelColor=6b6361)
+[![License: MIT](https://img.shields.io/badge/license-MIT-1f1a19?labelColor=6b6361)](LICENSE)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-b4422e?logo=github&labelColor=6b6361)](https://codespaces.new/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity?quickstart=1)
 
 To find cooking videos that look alike, you first have to turn each video into numbers you can compare. In this repo, we explore this with ByteEats' food preparation videos. Follow along to extract features from the videos, store them as vectors and search for the closest matches.
 
@@ -252,6 +262,18 @@ This playbook runs on one machine with sample data. Before you run something lik
 | A GitHub Codespace (2 cores, 8 GB, the default size; this repo asks for no larger one) | Estimated $0.18 per hour at GitHub's list price (November 2026). A free personal account includes 120 core-hours a month, about 60 hours on this machine. In CI, `make run` took 116 s in a freshly built devcontainer. |
 
 ## How it works
+
+```mermaid
+flowchart LR
+  A["Cooking videos<br/>32 sample clips"] --> C["ResNet-18 embeddings<br/>every 5th frame, averaged"]
+  B["Reference photos<br/>7 images"] --> C
+  C --> D["Vector files<br/>.npy plus JSON metadata"]
+  D --> E["FAISS index<br/>flat, IVF or HNSW"]
+  E --> F["FastAPI<br/>similar videos, quality check"]
+  F --> G["Dash dashboard<br/>PCA and t-SNE plots"]
+  classDef key fill:#ffe8e3,stroke:#b4422e,color:#1f1a19
+  class C key
+```
 
 - **Video Feature Extraction**: Extracts meaningful features from food preparation videos
 - **Vector Embedding Generation**: Transforms video features into 512-dimensional vector embeddings using ResNet
@@ -543,7 +565,7 @@ Details are in [CHANGELOG.md](CHANGELOG.md).
 
 None of it shows a real restaurant, kitchen, robot, customer or person. [data/README.md](data/README.md) lists every file and what uses it.
 
-The full list, with sources, licenses and citations, is in [DATA_LICENSES.md](DATA_LICENSES.md).
+The full list, with sources, licenses and citations, is in [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Expected output
 
@@ -688,3 +710,8 @@ If this playbook helped you, a star helps other readers find it.
 ## License
 
 The ByteEats Vector Similarity Search project is licensed under the MIT License. The sample data in `data/` and the screenshots in `docs/images/` are MIT-licensed too.
+
+---
+
+[The book](https://oreil.ly/data-engineering-multimodal) · [All playbooks](https://github.com/Data-Engineering-for-Multimodal-AI#playbooks) · Previous: [Playbook 04](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline) · Next: [Playbook 05](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-05-multimodal-feature-engineering)
+<!-- Substack post for this playbook: add link here -->
